@@ -1,0 +1,20 @@
+const mongoose = require("mongoose");
+
+const bookingSchema = new mongoose.Schema(
+  {
+    user: { type: String, required: true },
+    bikeType: { type: String, required: true },
+    amountPaid: { type: number, required: true },
+    modeOfRental: { type: String, required: true },
+    modeOfPayment: { type: String, required: true },
+    duration: { type: String, required: true },
+    amount: { type: number, required: true },
+    booking: { type: String, required: true },
+    fromDate: { type: String, required: true },
+    toDate: { type: String, required: true },
+    amountStatus: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+module.exports = mongoose.model("Booking", bookingSchema);

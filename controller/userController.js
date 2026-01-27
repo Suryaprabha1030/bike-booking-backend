@@ -4,14 +4,15 @@ const Booking = require("../models/Booking");
 exports.addUser = async (req, res) => {
   console.log("USER API HIT"); // debug
   try {
-    const { name, user, address, proofType, proofNumber } = req.body;
+    const { name, user, address, proofType, image } = req.body;
 
     const userData = await User.create({
       name,
       user,
       address,
       proofType,
-      proofNumber,
+
+      image,
     });
 
     res.status(201).json({

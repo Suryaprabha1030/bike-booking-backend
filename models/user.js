@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     user: { type: String, required: true },
     address: { type: String, required: true },
     proofType: { type: String, required: true },
-    proofNumber: { type: String },
+    // proofNumber: { type: String },
     image: String,
   },
   { timestamps: true },

@@ -6,27 +6,29 @@ exports.createBooking = async (req, res) => {
     const {
       user,
       bikeType,
-      // pickUp,
-      drop,
       modeOfRental,
       modeOfPayment,
       duration,
+      amountPaid,
       amount,
       booking,
       fromDate,
       toDate,
+      amountStatus,
     } = req.body;
 
     const bike = await Booking.create({
       user,
       bikeType,
-      // pickUp,
-
       modeOfRental,
       modeOfPayment,
       duration,
       amount,
+      amountPaid,
       booking,
+      fromDate,
+      toDate,
+      amountStatus,
     });
 
     res.status(201).json({

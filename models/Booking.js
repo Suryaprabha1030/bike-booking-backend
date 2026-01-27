@@ -4,11 +4,11 @@ const bookingSchema = new mongoose.Schema(
   {
     user: { type: String, required: true },
     bikeType: { type: String, required: true },
-    amountPaid: { type: number, required: true },
+    amountPaid: { type: Number, required: true },
     modeOfRental: { type: String, required: true },
     modeOfPayment: { type: String, required: true },
     duration: { type: String, required: true },
-    amount: { type: number, required: true },
+    amount: { type: Number, required: true },
     booking: { type: String, required: true },
     fromDate: { type: String, required: true },
     toDate: { type: String, required: true },

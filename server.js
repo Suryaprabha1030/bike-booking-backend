@@ -17,10 +17,12 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
 const bikeRoutes = require("./routes/bikeRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 app.use("/api/bikes", bikeRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

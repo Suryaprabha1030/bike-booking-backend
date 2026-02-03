@@ -4,6 +4,7 @@ const User = require("../models/user");
 exports.createBooking = async (req, res) => {
   try {
     const {
+      adminId,
       user,
       bikeType,
       modeOfRental,
@@ -18,6 +19,7 @@ exports.createBooking = async (req, res) => {
     } = req.body;
 
     const bike = await Booking.create({
+      adminId,
       user,
       bikeType,
       modeOfRental,
@@ -45,7 +47,8 @@ exports.createBooking = async (req, res) => {
 };
 exports.getBookings = async (req, res) => {
   try {
-    const bookingData = await Booking.find(); // fetch all bikes
+    const { adminId } = req.params;
+    const bookingData = await Booking.find({ adminId }); // fetch all bikes
     res.status(200).json({
       success: true,
       data: bookingData,
@@ -60,8 +63,9 @@ exports.getBookings = async (req, res) => {
 exports.updateBooking = async (req, res) => {
   try {
     const id = req.params.id || req.body.id;
-
-    if (!id) {
+    const { adminId } = req.body;
+    console.log(adminId, "adminId");
+    if (!id || !adminId) {
       return res.status(400).json({
         success: false,
         message: "Booking ID is required",
@@ -93,7 +97,10 @@ exports.updateBooking = async (req, res) => {
     }
 
     const booking = await Booking.findByIdAndUpdate(
-      id,
+      {
+        _id: id,
+        adminId, // 🔐 admin ownership check
+      },
       updateData, // 🔥 add OR overwrite happens here
       {
         new: true,
@@ -153,6 +160,13 @@ exports.updateBooking = async (req, res) => {
 exports.fetchBookData = async (req, res) => {
   try {
     const { user } = req.params;
+    const { adminId } = req.body;
+    if (!user || !adminId) {
+      return res.status(400).json({
+        success: false,
+        message: "user and adminId are required",
+      });
+    }
 
     const data = await User.aggregate([
       {
@@ -188,20 +202,71 @@ exports.fetchBookData = async (req, res) => {
   }
 };
 
+// exports.getAmountAnalytics = async (req, res) => {
+//   try {
+//     const { type, adminId } = req.query;
+//     console.log(adminId, "adminId");
+//     // const adminId = req.body?.adminId; // assuming POST with body
+//     // Or, if GET + query param:
+//     // const adminId = req.query.adminId;
+
+//     if (!adminId) {
+//       return res.status(400).json({ error: "adminId is required" });
+//     }
+
+//     let groupId;
+
+//     if (type === "days") {
+//       groupId = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+//     } else if (type === "month") {
+//       groupId = { $dateToString: { format: "%b-%Y", date: "$createdAt" } };
+//     } else if (type === "year") {
+//       groupId = { $year: "$createdAt" };
+//     } else {
+//       return res.status(400).json({ error: "Invalid type" });
+//     }
+
+//     const data = await Booking.aggregate([
+//       {
+//         // 1️⃣ Filter by adminId first
+//         $match: { adminId: adminId },
+//       },
+//       {
+//         $group: {
+//           _id: groupId,
+//           totalAmount: { $sum: { $toDouble: "$amount" } },
+//           totalBookings: { $sum: 1 },
+//         },
+//       },
+//       { $sort: { _id: 1 } },
+//     ]);
+
+//     res.json({ success: true, data });
+//   } catch (err) {
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// };
+const mongoose = require("mongoose");
+
 exports.getAmountAnalytics = async (req, res) => {
   try {
     const { type } = req.query;
+    let { adminId } = req.query; // or req.body if POST
+
+    if (!adminId) {
+      return res.status(400).json({ error: "adminId is required" });
+    }
+
+    // 🔹 Convert adminId to ObjectId if stored as ObjectId in MongoDB
+    if (mongoose.Types.ObjectId.isValid(adminId)) {
+      adminId = new mongoose.Types.ObjectId(adminId);
+    }
 
     let groupId;
-
     if (type === "days") {
-      groupId = {
-        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-      };
+      groupId = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
     } else if (type === "month") {
-      groupId = {
-        $dateToString: { format: "%b-%Y", date: "$createdAt" },
-      };
+      groupId = { $dateToString: { format: "%b-%Y", date: "$createdAt" } };
     } else if (type === "year") {
       groupId = { $year: "$createdAt" };
     } else {
@@ -210,21 +275,67 @@ exports.getAmountAnalytics = async (req, res) => {
 
     const data = await Booking.aggregate([
       {
+        $match: { adminId: adminId }, // 🔹 Filter by adminId first
+      },
+      {
         $group: {
           _id: groupId,
-          totalAmount: {
-            $sum: {
-              $toDouble: "$amount", // ✅ handles decimals
-            },
-          },
+          totalAmount: { $sum: { $toDouble: "$amount" } },
           totalBookings: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
 
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
+
+// exports.getAmountAnalytics = async (req, res) => {
+//   try {
+//     const { type, adminId } = req.query;
+
+//     let groupId;
+
+//     if (type === "days") {
+//       groupId = {
+//         $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+//       };
+//     } else if (type === "month") {
+//       groupId = {
+//         $dateToString: { format: "%b-%Y", date: "$createdAt" },
+//       };
+//     } else if (type === "year") {
+//       groupId = { $year: "$createdAt" };
+//     } else {
+//       return res.status(400).json({ error: "Invalid type" });
+//     }
+
+//     const data = await Booking.aggregate([
+//       {
+//         // 1️⃣ Filter by adminId first
+//         $match: { adminId: adminId.adminId },
+//       },
+//       {
+//         $group: {
+//           _id: groupId,
+
+//           totalAmount: {
+//             $sum: {
+//               $toDouble: "$amount", // ✅ handles decimals
+//             },
+//           },
+//           totalBookings: { $sum: 1 },
+//         },
+//       },
+//       { $sort: { _id: 1 } },
+//     ]);
+
+//     res.json(data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };

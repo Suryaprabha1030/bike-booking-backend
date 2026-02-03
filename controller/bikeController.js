@@ -26,10 +26,18 @@ const Bike = require("../models/Bike");
 
 exports.createBike = async (req, res) => {
   try {
-    const { location, BikeType, RatePerDay, image, about, bikeStatus } =
-      req.body;
+    const {
+      adminId,
+      location,
+      BikeType,
+      RatePerDay,
+      image,
+      about,
+      bikeStatus,
+    } = req.body;
 
     const bike = await Bike.create({
+      adminId,
       location,
       BikeType,
       RatePerDay,
@@ -53,7 +61,8 @@ exports.createBike = async (req, res) => {
 
 exports.getBikes = async (req, res) => {
   try {
-    const bikes = await Bike.find(); // fetch all bikes
+    const { adminId } = req.params;
+    const bikes = await Bike.find({ adminId }); // fetch all bikes
     res.status(200).json({
       success: true,
       data: bikes,
@@ -69,8 +78,12 @@ exports.getBikes = async (req, res) => {
 exports.deleteBike = async (req, res) => {
   try {
     const { id } = req.params;
+    const { adminId } = req.body; // or from token later
 
-    const bike = await Bike.findByIdAndDelete(id);
+    const bike = await Bike.findOneAndDelete({
+      _id: id,
+      adminId,
+    });
 
     if (!bike) {
       return res.status(404).json({

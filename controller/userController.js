@@ -4,9 +4,10 @@ const Booking = require("../models/Booking");
 exports.addUser = async (req, res) => {
   console.log("USER API HIT"); // debug
   try {
-    const { name, user, address, proofType, image } = req.body;
+    const { name, user, address, proofType, image, adminId } = req.body;
 
     const userData = await User.create({
+      adminId,
       name,
       user,
       address,
@@ -30,7 +31,8 @@ exports.addUser = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   console.log("GET ALL USERS HIT"); // debug log
   try {
-    const users = await User.find(); // fetch all users
+    const { adminId } = req.params;
+    const users = await User.find({ adminId }); // fetch all users
     console.log("DB QUERY DONE", users.length, "users");
     res.json(users); // send response
   } catch (err) {
@@ -42,10 +44,14 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUserAndBooking = async (req, res) => {
   try {
     const { userId } = req.params; // matches your route
-    const { user: newUser, ...otherFields } = req.body;
+
+    const { adminId, user: newUser, ...otherFields } = req.body;
 
     // 1️⃣ Find existing user
-    const existingUser = await User.findById(userId);
+    const existingUser = await User.findById({
+      user: userId,
+      adminId,
+    });
 
     if (!existingUser) {
       return res.status(404).json({
@@ -58,13 +64,19 @@ exports.updateUserAndBooking = async (req, res) => {
 
     // 2️⃣ Update User
     const updatedUser = await User.findByIdAndUpdate(
-      userId,
+      {
+        user: userId,
+        adminId, // 🔐 admin ownership check
+      },
       { $set: { user: newUser, ...otherFields } },
       { new: true, runValidators: true },
     );
 
     // 3️⃣ Update Booking
-    await Booking.updateMany({ user: oldUser }, { $set: { user: newUser } });
+    await Booking.updateMany(
+      { user: oldUser, adminId },
+      { $set: { user: newUser } },
+    );
 
     res.status(200).json({
       success: true,

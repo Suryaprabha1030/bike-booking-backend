@@ -8,7 +8,7 @@ const {
 } = require("../controller/bikeController");
 
 router.post("/add", createBike);
-router.get("/fetchAllBike", getBikes);
+router.get("/fetchAllBike/:adminId", getBikes);
 router.delete("/:id", deleteBike);
 router.put("/:id", updateBike);
 

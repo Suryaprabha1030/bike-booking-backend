@@ -7,6 +7,6 @@ const {
 } = require("../controller/userController");
 
 router.post("/userDetails", addUser);
-router.get("/userDetails", getAllUsers);
+router.get("/userDetails/:adminId", getAllUsers);
 router.post("/editUserDetails/:userId", updateUserAndBooking);
 module.exports = router;

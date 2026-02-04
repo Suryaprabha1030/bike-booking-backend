@@ -15,6 +15,10 @@ app.use(express.json({ limit: "30mb" }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 // app.listen(5000, "0.0.0.0", () => console.log("Server running"));
 
+app.get("/", (req, res) => {
+  res.send("<h1>Server is Running! 🚀</h1>");
+});
+
 const bikeRoutes = require("./routes/bikeRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const userRoutes = require("./routes/userRoutes");

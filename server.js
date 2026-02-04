@@ -1,4 +1,4 @@
-// Server Entry Point
+// Server Entry Point v2
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
